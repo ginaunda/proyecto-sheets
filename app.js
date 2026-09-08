@@ -2,7 +2,7 @@
 // GU LEGAL - Lógica Frontend
 // ============================================================
 
-const API_URL = 'PEGA_AQUI_TU_URL_EXEC'; // ⚠️ MISMA URL /exec que ya tenías
+const API_URL = 'https://script.google.com/macros/s/AKfycbyqqoacMwaS7Ff70oiFRLvnwAeq-hjl0XfW4Ir-98_Y_m4PG2DtgQSfPP5xK6RQhzRs/exec'; // ⚠️ MISMA URL /exec que ya tenías
 const LOGO = 'https://i.postimg.cc/PJgdzhf4/Chat-GPT-Image-7-sept-2026-22-19-47.png';
 
 let tokenSesion = null;
