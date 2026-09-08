@@ -1,1 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>GU Legal</title>
+  <style>
+    :root {
+      --negro: #0A0F1E;
+      --negro-2: #121A2E;
+      --dorado: #D4AF37;
+      --dorado-claro: #F1DE9B;
+      --gris-fondo: #F5F6FA;
+      --gris-borde: #DDE3EC;
+      --texto: #1A2332;
+      --muted: #7A8699;
+      --rojo: #C0392B;
+      --verde: #2E7D32;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; background: var(--negro); }
 
+    /* ===== SPLASH ===== */
+    #pantallaSplash {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, var(--negro) 0%, #050810 100%);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; transition: opacity .6s ease, visibility .6s ease;
+    }
+    #pantallaSplash.oculto { opacity: 0; visibility: hidden; pointer-events: none; }
+    .triangulo { position: absolute; width: 0; height: 0; }
+    .t1 { border-left: 260px solid transparent; border-right: 260px solid transparent; border-bottom: 420px solid #fff; bottom: -120px; left: -140px; transform: rotate(15deg); opacity: .04; }
+    .t2 { border-left: 200px solid transparent; border-right: 200px solid transparent; border-bottom: 320px solid var(--dorado); bottom: -60px; right: -120px; transform: rotate(-20deg); opacity: .07; }
+    .t3 { border-left: 140px solid transparent; border-right: 140px solid transparent; border-bottom: 220px solid #fff; top: -80px; right: -60px; transform: rotate(160deg); opacity: .04; }
+    .splash-contenido { position: relative; z-index: 2; text-align: center; animation: aparecer 1s ease; }
+    .splash-logo { height: 110px; filter: drop-shadow(0 6px 18px rgba(0,0,0,.5)); margin-bottom: 18px; }
+    .splash-nombre { color: var(--dorado); font-size: 28px; font-weight: 800; letter-spacing: 6px; }
+    .splash-eslogan { color: #B8C0D4; font-size: 13px; font-style: italic; margin-top: 12px; letter-spacing: 1px; }
+    .spinner { margin: 40px auto 0; width: 30px; height: 30px; border: 3px solid rgba(255,255,255,.2); border-top-color: var(--dorado); border-radius: 50%; animation: girar .9s linear infinite; }
+    @keyframes girar { to { transform: rotate(360deg); } }
+    @keyframes aparecer { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== PANTALLAS GENÉRICAS ===== */
+    .pantalla-centrada {
+      position: fixed; inset: 0;
+      background: linear-gradient(180deg, #F4F7FB 0%, #E9EEF5 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; z-index: 50;
+      opacity: 0; visibility: hidden; transition: opacity .5s ease, visibility .5s ease;
+    }
+    .pantalla-centrada.visible { opacity: 1; visibility: visible; }
+    .pantalla-fija { position: fixed; inset: 0; display: none; flex-direction: column; z-index: 40; }
+    .tarjeta { width: 100%; max-width: 380px; background: #fff; border-radius: 22px; padding: 34px 28px 30px; box-shadow: 0 20px 50px rgba(10,15,30,.15); text-align: center; }
+    .tarjeta-logo { height: 64px; margin-bottom: 10px; }
+    .titulo-marca { color: var(--negro); font-size: 19px; font-weight: 800; letter-spacing: 2px; }
+    .subtitulo-marca { color: var(--muted); font-size: 13px; margin: 4px 0 26px; }
+
+    .campo { text-align: left; margin-bottom: 16px; }
+    .campo label { display: block; font-size: 12.5px; font-weight: 700; color: var(--negro); margin-bottom: 6px; }
+    .campo input { width: 100%; padding: 13px 14px; border: 1.5px solid var(--gris-borde); border-radius: 12px; font-size: 15px; outline: none; background: #F8FAFC; }
+    .campo input:focus { border-color: var(--dorado); background: #fff; }
+
+    .btn-primario { width: 100%; padding: 14px; border: none; border-radius: 12px; background: linear-gradient(135deg, var(--negro), #050810); color: var(--dorado); font-size: 15.5px; font-weight: 700; cursor: pointer; letter-spacing: .5px; }
+    .btn-primario:disabled { opacity: .6; cursor: default; }
+    .link-secundario { display: block; margin-top: 16px; font-size: 12.5px; color: var(--muted); cursor: pointer; font-weight: 600; }
+    .link-secundario:hover { color: var(--negro); }
+
+    .msg-error { background: #FDECEB; color: var(--rojo); font-size: 12.5px; font-weight: 600; padding: 10px 12px; border-radius: 10px; margin-bottom: 16px; display: none; text-align: left; }
+    .msg-exito { background: #E8F5E9; color: var(--verde); font-size: 12.5px; font-weight: 600; padding: 10px 12px; border-radius: 10px; margin-bottom: 16px; display: none; text-align: left; }
+    .msg-info { background: #EEF2FB; color: var(--negro); font-size: 12px; font-weight: 600; padding: 10px 12px; border-radius: 10px; margin-bottom: 16px; display: none; text-align: left; }
+
+    .ojo { position: absolute; right: 14px; top: 38px; cursor: pointer; font-size: 16px; user-select: none; }
+
+    /* ===== BIENVENIDA ===== */
+    #pantallaBienvenida {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, var(--negro) 0%, #050810 100%);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 60; text-align: center; padding: 20px;
+    }
+    #pantallaBienvenida .saludo { color: #fff; font-size: 22px; font-weight: 800; }
+    #pantallaBienvenida .saludo span { color: var(--dorado); }
+
+    /* ===== DASHBOARD (placeholder Fase 1) ===== */
+    #pantallaDashboard {
+      position: fixed; inset: 0; background: var(--gris-fondo);
+      display: none; flex-direction: column; z-index: 40;
+    }
+    .dash-header {
+      background: linear-gradient(135deg, var(--negro), #050810);
+      padding: 22px 20px 26px; border-radius: 0 0 26px 26px; color: #fff; flex-shrink: 0;
+    }
+    .dash-hola { font-size: 15px; opacity: .85; }
+    .dash-nombre { font-size: 19px; font-weight: 800; color: var(--dorado); margin-top: 2px; }
+    .dash-rol { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 700; background: rgba(212,175,55,.15); color: var(--dorado); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(212,175,55,.4); }
+    .grid-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 16px; }
+    .mini-card { background: #fff; border-radius: 16px; padding: 16px; border: 1.5px solid var(--gris-borde); }
+    .mini-card .titulo { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .mini-card .valor { font-size: 26px; font-weight: 800; color: var(--negro); margin-top: 6px; }
+    .nota-fase { margin: 6px 16px; background: #fff; border: 1.5px dashed var(--gris-borde); border-radius: 14px; padding: 14px 16px; font-size: 12.5px; color: var(--muted); text-align: center; }
+    .btn-salir { margin: 18px auto 0; display: block; padding: 12px 34px; border: 1.5px solid #F5CFC9; background: #fff; color: var(--rojo); font-weight: 700; border-radius: 12px; cursor: pointer; font-size: 13.5px; }
+  </style>
+</head>
+<body>
+
+  <!-- SPLASH -->
+  <div id="pantallaSplash">
+    <div class="triangulo t1"></div>
+    <div class="triangulo t2"></div>
+    <div class="triangulo t3"></div>
+    <div class="splash-contenido">
+      <img class="splash-logo" src="https://i.postimg.cc/PJgdzhf4/Chat-GPT-Image-7-sept-2026-22-19-47.png" alt="GU Legal">
+      <div class="splash-nombre">GU LEGAL</div>
+      <div class="splash-eslogan">"Justicia con estrategia"</div>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="pantallaLogin" class="pantalla-centrada">
+    <div class="tarjeta">
+      <img class="tarjeta-logo" src="https://i.postimg.cc/PJgdzhf4/Chat-GPT-Image-7-sept-2026-22-19-47.png" alt="GU Legal">
+      <div class="titulo-marca">GU LEGAL</div>
+      <div class="subtitulo-marca">Sistema de Gestión Jurídica</div>
+
+      <div class="msg-error" id="msgErrorLogin"></div>
+
+      <form id="formLogin" onsubmit="return false;">
+        <div class="campo">
+          <label>Correo electrónico</label>
+          <input type="email" id="inputCorreo" placeholder="tucorreo@ejemplo.com" autocomplete="username">
+        </div>
+        <div class="campo" style="position:relative;">
+          <label>Contraseña</label>
+          <input type="password" id="inputPassword" placeholder="••••••" autocomplete="current-password">
+          <span class="ojo" id="toggleOjoLogin">👁️</span>
+        </div>
+        <button type="submit" class="btn-primario" id="btnIngresar">Ingresar</button>
+      </form>
+      <span class="link-secundario" onclick="abrirRecuperar()">¿Olvidaste tu contraseña?</span>
+    </div>
+  </div>
+
+  <!-- RECUPERAR CONTRASEÑA -->
+  <div id="pantallaRecuperar" class="pantalla-centrada" style="z-index:65;">
+    <div class="tarjeta" id="contenidoRecuperar"></div>
+  </div>
+
+  <!-- CAMBIO DE CONTRASEÑA OBLIGATORIO -->
+  <div id="pantallaCambioPass" class="pantalla-centrada" style="z-index:55;">
+    <div class="tarjeta">
+      <div style="width:62px;height:62px;border-radius:50%;background:#EEF2FB;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;">🔒</div>
+      <div style="color:var(--negro);font-size:18px;font-weight:800;">Crea tu nueva contraseña</div>
+      <div style="color:var(--muted);font-size:13px;margin:6px 0 24px;line-height:1.5;">Por seguridad, debes definir una contraseña propia antes de continuar.</div>
+      <div class="msg-error" id="msgErrorCambio"></div>
+      <form id="formCambioPass" onsubmit="return false;">
+        <div class="campo">
+          <label>Nueva contraseña</label>
+          <input type="password" id="inputNuevaPass" autocomplete="new-password">
+        </div>
+        <div class="campo">
+          <label>Confirma tu nueva contraseña</label>
+          <input type="password" id="inputConfirmarPass" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-primario" id="btnGuardarPass">Guardar contraseña</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- BIENVENIDA -->
+  <div id="pantallaBienvenida">
+    <div class="saludo">Hola, <span id="nombreBienvenida">Usuario</span></div>
+    <div style="color:#B8C0D4;font-size:14px;margin-top:8px;">Bienvenida a tu despacho digital</div>
+    <div class="spinner" style="margin-top:34px;"></div>
+  </div>
+
+  <!-- DASHBOARD (placeholder — se construye de verdad en Fase 2) -->
+  <div id="pantallaDashboard">
+    <div class="dash-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="dash-hola">Hola,</div>
+          <div class="dash-nombre" id="nombreDash">Usuario</div>
+          <div class="dash-rol" id="rolDash">—</div>
+        </div>
+        <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">🔔</div>
+      </div>
+    </div>
+    <div class="grid-cards">
+      <div class="mini-card"><div class="titulo">Audiencias hoy</div><div class="valor">—</div></div>
+      <div class="mini-card"><div class="titulo">Plazos por vencer</div><div class="valor">—</div></div>
+      <div class="mini-card"><div class="titulo">Te deben</div><div class="valor">—</div></div>
+      <div class="mini-card"><div class="titulo">Causas activas</div><div class="valor">—</div></div>
+    </div>
+    <div class="nota-fase">⚖️ Sesión funcionando correctamente.<br>En la <b>Fase 2</b> estos indicadores se llenarán con tus datos reales.</div>
+    <button class="btn-salir" onclick="salir()">Cerrar sesión</button>
+  </div>
+
+  <script>
+    // ⚠️ PEGA AQUÍ LA URL DE TU IMPLEMENTACIÓN (termina en /exec)
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyqqoacMwaS7Ff70oiFRLvnwAeq-hjl0XfW4Ir-98_Y_m4PG2DtgQSfPP5xK6RQhzRs/exec';
+
+    const LOGO = 'https://i.postimg.cc/PJgdzhf4/Chat-GPT-Image-7-sept-2026-22-19-47.png';
+
+    let tokenSesion = null;
+    let nombreActual = null;
+    let correoRecuperacion = null;
+
+    // ---- Puente con el backend ----
+    function llamarGU(accion, params) {
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: accion, params: params || [] })
+      }).then(function(res) { return res.json(); });
+    }
+
+    // ---- Arranque ----
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('pantallaSplash').classList.add('oculto');
+        const tokenGuardado = localStorage.getItem('gu_token');
+        if (tokenGuardado) {
+          llamarGU('verificarSesion', [tokenGuardado]).then(function(r) {
+                     if (r && r.valido) {
+              tokenSesion = tokenGuardado;
+              if (r.debeCambiarPassword) {
+                mostrarCambioPass();
+              } else {
+                entrarApp(r.nombre, r.rol);
+              }
+            } else {
+              localStorage.removeItem('gu_token');
+              mostrarLogin();
+            }
+          }).catch(function() { mostrarLogin(); });
+        } else {
+          mostrarLogin();
+        }
+      }, 2500);
+    });
+
+    function mostrarLogin() {
+      document.getElementById('pantallaLogin').classList.add('visible');
+    }
+  function mostrarCambioPass() {
+      document.getElementById('pantallaLogin').classList.remove('visible');
+      document.getElementById('pantallaCambioPass').classList.add('visible');
+    }
+    // ---- LOGIN ----
+    document.getElementById('formLogin').addEventListener('submit', function() {
+      const correo = document.getElementById('inputCorreo').value.trim();
+      const password = document.getElementById('inputPassword').value;
+      const btn = document.getElementById('btnIngresar');
+      const err = document.getElementById('msgErrorLogin');
+      err.style.display = 'none';
+
+      if (!correo || !password) {
+        err.textContent = 'Ingresa tu correo y contraseña';
+        err.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Ingresando...';
+      llamarGU('loginUsuario', [correo, password]).then(function(res) {
+        btn.disabled = false; btn.textContent = 'Ingresar';
+        if (!res.success) {
+          err.textContent = res.mensaje; err.style.display = 'block';
+          return;
+        }
+        tokenSesion = res.token;
+        nombreActual = res.nombre;
+        localStorage.setItem('gu_token', res.token);
+                if (res.debeCambiarPassword) {
+          mostrarCambioPass();
+        } else {
+          entrarApp(nombreActual, res.rol);
+        }
+      }).catch(function(e) {
+        btn.disabled = false; btn.textContent = 'Ingresar';
+        err.textContent = 'Error de conexión: ' + e.message; err.style.display = 'block';
+      });
+    });
+
+    document.getElementById('toggleOjoLogin').addEventListener('click', function() {
+      const input = document.getElementById('inputPassword');
+      input.type = (input.type === 'password') ? 'text' : 'password';
+    });
+
+    // ---- CAMBIO OBLIGATORIO ----
+    document.getElementById('formCambioPass').addEventListener('submit', function() {
+      const nueva = document.getElementById('inputNuevaPass').value;
+      const confirmar = document.getElementById('inputConfirmarPass').value;
+      const btn = document.getElementById('btnGuardarPass');
+      const err = document.getElementById('msgErrorCambio');
+      err.style.display = 'none';
+
+      if (nueva.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres'; err.style.display = 'block'; return; }
+      if (nueva !== confirmar) { err.textContent = 'Las contraseñas no coinciden'; err.style.display = 'block'; return; }
+
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      llamarGU('cambiarPasswordObligatorio', [tokenSesion, nueva]).then(function(res) {
+        if (!res.success) {
+          btn.disabled = false; btn.textContent = 'Guardar contraseña';
+          err.textContent = res.mensaje; err.style.display = 'block';
+          return;
+        }
+        btn.textContent = 'Contraseña guardada ✓';
+             document.getElementById('pantallaCambioPass').classList.remove('visible');
+        entrarApp(nombreActual, null);
+      }).catch(function(e) {
+        btn.disabled = false; btn.textContent = 'Guardar contraseña';
+        err.textContent = 'Error: ' + e.message; err.style.display = 'block';
+      });
+    });
+
+    // ---- ENTRAR A LA APP ----
+    function entrarApp(nombre, rol) {
+      document.getElementById('pantallaLogin').classList.remove('visible');
+      document.getElementById('nombreBienvenida').textContent = nombre || 'Usuario';
+      document.getElementById('pantallaBienvenida').style.display = 'flex';
+      setTimeout(function() {
+        document.getElementById('pantallaBienvenida').style.display = 'none';
+        document.getElementById('nombreDash').textContent = nombre || 'Usuario';
+        document.getElementById('rolDash').textContent = rol === 'Admin' ? '👑 Administradora' : (rol || '—');
+        document.getElementById('pantallaDashboard').style.display = 'flex';
+      }, 1800);
+    }
+
+    function salir() {
+      llamarGU('cerrarSesion', [tokenSesion]).finally(function() {
+        localStorage.removeItem('gu_token');
+        location.reload();
+      });
+    }
+
+    // ---- RECUPERACIÓN DE CONTRASEÑA (4 pasos) ----
+    function abrirRecuperar() {
+      document.getElementById('pantallaLogin').classList.remove('visible');
+      correoRecuperacion = null;
+      recuperarPaso1();
+      document.getElementById('pantallaRecuperar').classList.add('visible');
+    }
+
+    function recuperarPaso1() {
+      document.getElementById('contenidoRecuperar').innerHTML =
+        '<div class="titulo-marca">Recuperar acceso</div>' +
+        '<div class="subtitulo-marca">Ingresa tu correo registrado</div>' +
+        '<div class="msg-error" id="msgRec"></div>' +
+        '<div class="campo"><label>Correo electrónico</label><input type="email" id="recCorreo"></div>' +
+        '<button class="btn-primario" onclick="recPaso1()">Continuar</button>' +
+        '<span class="link-secundario" onclick="volverLogin()">Volver al inicio de sesión</span>';
+    }
+
+    function recPaso1() {
+      const correo = document.getElementById('recCorreo').value.trim();
+      const err = document.getElementById('msgRec');
+      if (!correo) { err.textContent = 'Ingresa tu correo'; err.style.display = 'block'; return; }
+      correoRecuperacion = correo;
+      llamarGU('iniciarRecuperacionPaso1', [correo]).then(recuperarPaso2);
+    }
+
+    function recuperarPaso2() {
+      document.getElementById('contenidoRecuperar').innerHTML =
+        '<div class="titulo-marca">Verificación</div>' +
+        '<div class="subtitulo-marca">Por seguridad, confirma tu primer nombre</div>' +
+        '<div class="msg-error" id="msgRec"></div>' +
+        '<div class="campo"><label>Primer nombre</label><input type="text" id="recNombre" placeholder="Ej: Gina"></div>' +
+        '<button class="btn-primario" id="btnRec2" onclick="recPaso2()">Enviar código</button>' +
+        '<span class="link-secundario" onclick="volverLogin()">Volver al inicio de sesión</span>';
+    }
+
+    function recPaso2() {
+      const nombre = document.getElementById('recNombre').value.trim();
+      const err = document.getElementById('msgRec');
+      const btn = document.getElementById('btnRec2');
+      if (!nombre) { err.textContent = 'Ingresa tu primer nombre'; err.style.display = 'block'; return; }
+      btn.disabled = true; btn.textContent = 'Enviando...';
+      llamarGU('verificarNombreYEnviarCodigo', [correoRecuperacion, nombre]).then(function(res) {
+        btn.disabled = false; btn.textContent = 'Enviar código';
+        if (!res.success) { err.textContent = res.mensaje; err.style.display = 'block'; return; }
+        recuperarPaso3(res.mensaje);
+      }).catch(function(e) { err.textContent = 'Error: ' + e.message; err.style.display = 'block'; });
+    }
+
+    function recuperarPaso3(mensajeInfo) {
+      document.getElementById('contenidoRecuperar').innerHTML =
+        '<div class="titulo-marca">Código de verificación</div>' +
+        '<div class="subtitulo-marca">Te enviamos un código a tu correo (revisa también spam)</div>' +
+        '<div class="msg-info" id="msgInfoRec" style="display:block;">' + (mensajeInfo || '') + '</div>' +
+        '<div class="msg-error" id="msgRec"></div>' +
+        '<div class="campo"><label>Código de 4 dígitos</label><input type="text" id="recCodigo" maxlength="4" style="text-align:center;letter-spacing:8px;font-size:20px;"></div>' +
+        '<button class="btn-primario" onclick="recPaso3()">Verificar código</button>' +
+        '<span class="link-secundario" onclick="recuperarPaso2()">Reenviar / corregir mis datos</span>';
+    }
+
+    function recPaso3() {
+      const codigo = document.getElementById('recCodigo').value.trim();
+      const err = document.getElementById('msgRec');
+      if (!codigo) { err.textContent = 'Ingresa el código'; err.style.display = 'block'; return; }
+      llamarGU('verificarCodigoRecuperacion', [correoRecuperacion, codigo]).then(function(res) {
+        if (!res.success) { err.textContent = res.mensaje; err.style.display = 'block'; return; }
+        recuperarPaso4();
+      }).catch(function(e) { err.textContent = 'Error: ' + e.message; err.style.display = 'block'; });
+    }
+
+    function recuperarPaso4() {
+      document.getElementById('contenidoRecuperar').innerHTML =
+        '<div class="titulo-marca">Nueva contraseña</div>' +
+        '<div class="subtitulo-marca">Define tu nueva contraseña de acceso</div>' +
+        '<div class="msg-error" id="msgRec"></div>' +
+        '<div class="msg-exito" id="msgExitoRec"></div>' +
+        '<div class="campo"><label>Nueva contraseña</label><input type="password" id="recPass1"></div>' +
+        '<div class="campo"><label>Confirma tu contraseña</label><input type="password" id="recPass2"></div>' +
+        '<button class="btn-primario" id="btnRec4" onclick="recPaso4()">Guardar contraseña</button>' +
+        '<span class="link-secundario" onclick="volverLogin()">Volver al inicio de sesión</span>';
+    }
+    function recPaso4() {
+      const p1 = document.getElementById('recPass1').value;
+      const p2 = document.getElementById('recPass2').value;
+      const err = document.getElementById('msgRec');
+      const btn = document.getElementById('btnRec4');
+      if (p1.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres'; err.style.display = 'block'; return; }
+      if (p1 !== p2) { err.textContent = 'Las contraseñas no coinciden'; err.style.display = 'block'; return; }
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      llamarGU('aplicarNuevaPasswordRecuperacion', [correoRecuperacion, codigoActualRecuperacion(), p1])
+        .then(function(res) {
+          if (!res.success) { btn.disabled = false; btn.textContent = 'Guardar contraseña'; err.textContent = res.mensaje; err.style.display = 'block'; return; }
+          err.style.display = 'none';
+          const ok = document.getElementById('msgExitoRec');
+          ok.textContent = '✅ ' + res.mensaje + ' Ya puedes iniciar sesión.';
+          ok.style.display = 'block';
+          btn.style.display = 'none';
+        })
+        .catch(function(e) {
+          btn.disabled = false; btn.textContent = 'Guardar contraseña';
+          err.textContent = 'Error: ' + e.message; err.style.display = 'block';
+        });
+    }
+
+    function codigoActualRecuperacion() {
+      const el = document.getElementById('recCodigo');
+      return el ? el.value.trim() : '';
+    }
+
+    function volverLogin() {
+      document.getElementById('pantallaRecuperar').classList.remove('visible');
+      mostrarLogin();
+    }
+  </script>
+</body>
+</html>
